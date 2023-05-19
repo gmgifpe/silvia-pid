@@ -11,23 +11,33 @@
   <h1>Silvia</h1>
   <div class="metrics">
     <p>
-      <span class="sensor-labels">Current Temperature:</span>
-      <span id="temperature">N/A</span>
-      <sup class="units">&deg;C</sup>
-    </p>
+      <span class="sensor-labels">Boiler Status:</span>
+      <span id="boilerStatus">N/A</span>
+    </p>    
     <p>
       <span class="sensor-labels">Target Temperature:</span>
       <span id="targetTemperature">N/A</span>
       <sup class="units">&deg;C</sup>
     </p>
     <p>
-      <span class="sensor-labels">Boiler Status:</span>
-      <span id="boilerStatus">N/A</span>
-    </p>
+      <span class="sensor-labels">Temperature:</span>
+      <span id="temperature">N/A</span>
+      <sup class="units">&deg;C</sup>
+    </p>    
   </div>
   <div class="graph-wrapper">
     <canvas id="tempGraph" width="350" height="200"></canvas>
   </div>
+  <div class="metrics"></div>
+    <p>
+      <span class="sensor-labels">Pressure:</span>
+      <span id="pressure">N/A</span>
+      <sup class="units">bar</sup>
+    </p>    
+  </div>
+  <div class="graph-wrapper">
+    <canvas id="presGraph" width="350" height="200"></canvas>
+  </div>  
   <div class="config-wrapper">
     <div class="row">
       <div class="col">
@@ -77,8 +87,19 @@ var smoothie = new SmoothieChart({
 });
 smoothie.streamTo(document.getElementById("tempGraph"), 500);
 var tempLine = new TimeSeries();
+var smoothiePres = new SmoothieChart({
+  labels: {
+    precision:2
+  },
+  tooltip:true,
+  maxValue:15,
+  minValue:0
+});
+smoothiePres.streamTo(document.getElementById("presGraph"), 500);
+var presLine = new TimeSeries();
 const currentTempEl = document.getElementById('temperature');
 const targetTempEl = document.getElementById('targetTemperature');
+const currentPresEl = document.getElementById('pressure');
 const boilerStatusEl = document.getElementById('boilerStatus');
 
 const updateStatus = () => {
@@ -86,8 +107,10 @@ const updateStatus = () => {
   .then(res => res.json())
   .then(val => {
     tempLine.append(new Date().getTime(), val.temperature);
+    presLine.append(new Date().getTime(), val.pressure);
     currentTempEl.innerHTML = val.temperature;
     targetTempEl.innerHTML = val.targetTemperature;
+    currentPresEl.innerHTML = val.pressure;
     boilerStatusEl.innerHTML = val.boilerStatus ? 'On' : 'Off';
     setTimeout(updateStatus, 500);
   }).catch(err => {
@@ -148,5 +171,6 @@ getConfig();
 updateStatus();
 // Add to SmoothieChart
 smoothie.addTimeSeries(tempLine, {lineWidth:2,strokeStyle:'#00ff00'});
+smoothiePres.addTimeSeries(presLine, {lineWidth:2,strokeStyle:'#00ff00'});
 </script>
 </html>

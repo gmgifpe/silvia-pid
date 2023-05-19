@@ -73,6 +73,7 @@ void loop() {
 
   // Get current Temperature and Pressure
   currentTemp = getCurrentTemperature();
+  currentPres = random(0, 150) / 10.0;
 
   // PID contorol on Temperature
   time_now=millis();

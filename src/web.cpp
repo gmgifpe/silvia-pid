@@ -27,6 +27,8 @@ void notFound(AsyncWebServerRequest *request) {
 void handleStatus(AsyncWebServerRequest *request) {
     String message = "{\"temperature\": ";
     message += currentTemp;
+    message += ", \"pressure\": ";
+    message += currentPres;
     message += ", \"targetTemperature\": ";
     message += gTargetTemp;
     message += ", \"boilerStatus\": ";

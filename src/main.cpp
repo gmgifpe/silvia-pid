@@ -4,6 +4,7 @@
 #include <sensor.h>
 #include <heater.h>
 #include <PID_v1.h>
+#include <timer.h>
 #include <oled.h>
 #include <config.h>
 
@@ -54,6 +55,9 @@ void setup() {
   setupSensor();
   setupHeater();
   ssd1306_init();
+  setup_timer();
+
+  gEvent = EVENT_BOOT;
 
   // start PID
   ESPPID.SetTunings(gP, gI, gD);
@@ -66,9 +70,13 @@ void setup() {
 }
 
 void loop() {
-  time_now=millis();
+
+  // Get current Temperature and Pressure
   currentTemp = getCurrentTemperature();
 
+  // PID contorol on Temperature
+  time_now=millis();
+  
   if(abs((double)(time_now-time_last))>=PID_INTERVAL or time_last > time_now) {
     if( !overShootMode && abs((double)(gTargetTemp-currentTemp))>=gOvershoot ) {        
       ESPPID.SetTunings(gaP, gaI, gaD);
@@ -83,7 +91,8 @@ void loop() {
     }
     time_last=time_now;
   }
-
-  ssd1306_display(currentTemp, currentPres, gTargetTemp, heaterState);
   updateHeater();
+
+  // background event (show current temperature and pressure on SSD1306)
+  background_event();  
 }

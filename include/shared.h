@@ -9,6 +9,9 @@
 
 #define BUF_SIZE 1024
 
+extern double currentTemp;
+extern double currentPres;
+
 extern unsigned long time_now;
 extern unsigned long time_last;
 extern double gTargetTemp;

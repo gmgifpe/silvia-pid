@@ -13,7 +13,7 @@
     <p>
       <span class="sensor-labels">Boiler Status:</span>
       <span id="boilerStatus">N/A</span>
-    </p>    
+    </p>
     <p>
       <span class="sensor-labels">Target Temperature:</span>
       <span id="targetTemperature">N/A</span>
@@ -23,21 +23,14 @@
       <span class="sensor-labels">Temperature:</span>
       <span id="temperature">N/A</span>
       <sup class="units">&deg;C</sup>
-    </p>    
-  </div>
-  <div class="graph-wrapper">
-    <canvas id="tempGraph" width="350" height="200"></canvas>
-  </div>
-  <div class="metrics"></div>
-    <p>
       <span class="sensor-labels">Pressure:</span>
       <span id="pressure">N/A</span>
       <sup class="units">bar</sup>
-    </p>    
+    </p>   
   </div>
-  <div class="graph-wrapper">
-    <canvas id="presGraph" width="350" height="200"></canvas>
-  </div>  
+  <div class="chart-container">
+    <svg class="chart" id="chart"></svg>
+  </div>
   <div class="config-wrapper">
     <div class="row">
       <div class="col">
@@ -54,11 +47,11 @@
       <div class="col">
         <h3>Normal PID</h3>
         <label for="configP">P</label>
-          <input type="number" inputmode="numeric" name="configP" id="configP" step="0.1" />
+        <input type="number" inputmode="numeric" name="configP" id="configP" step="0.1" />
         <label for="configI">I</label>
         <input type="number" inputmode="numeric" name="configI" id="configI" step="0.1" />
         <label for="configD">D</label>
-          <input type="number" inputmode="numeric" name="configD" id="configD" step="0.1" />
+        <input type="number" inputmode="numeric" name="configD" id="configD" step="0.1" />
       </div>
       <div class="col">
         <h3>Adaptive PID</h3>
@@ -74,40 +67,96 @@
   </div>
   <ul class="prophet"></ul>
 </body>
-<script type="text/javascript" src="smoothie.js"></script>
+<script src="d3.v7.min.js"></script>
 <script type="text/javascript" src="prophet.min.js"></script>
 <script>
-var smoothie = new SmoothieChart({
-  labels: {
-    precision:2
-  },
-  tooltip:true,
-  maxValue:120,
-  minValue:20
-});
-smoothie.streamTo(document.getElementById("tempGraph"), 500);
-var tempLine = new TimeSeries();
-var smoothiePres = new SmoothieChart({
-  labels: {
-    precision:2
-  },
-  tooltip:true,
-  maxValue:15,
-  minValue:0
-});
-smoothiePres.streamTo(document.getElementById("presGraph"), 500);
-var presLine = new TimeSeries();
+var margin = { top: 20, right: 20, bottom: 30, left: 50 };
+var width = window.innerWidth - margin.left - margin.right;
+var height = Math.floor((window.innerHeight - 100) / 2) - margin.top - margin.bottom;
+var x = d3.scaleTime().range([0, width]);
+var y1 = d3.scaleLinear().range([height, 0]);
+var y2 = d3.scaleLinear().range([height, 0]);
+
+var xAxis = d3.axisBottom(x);
+var yAxis1 = d3.axisLeft(y1);
+var yAxis2 = d3.axisRight(y2);
+
+var temperatureLine = d3.line()
+  .x(function (d) { return x(d.time); })
+  .y(function (d) { return y1(d.temperature); });
+
+var pressureLine = d3.line()
+  .x(function (d) { return x(d.time); })
+  .y(function (d) { return y2(d.pressure); });
+
+var svg = d3.select("#chart")
+  .attr("width", width + margin.left + margin.right)
+  .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var data = [];
+var time = new Date();
+
+x.domain(d3.extent(data, function (d) { return d.time; }));
+  y1.domain([0, 150]);
+  y2.domain([0, 15]);
+
+  svg.append("g")
+    .attr("class", "x-axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xAxis);
+
+  svg.append("g")
+    .attr("class", "y-axis temperature-axis")
+    .call(yAxis1)
+    .append("text")
+    .attr("fill", "#ffffff")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 6)
+    .attr("dy", "0.71em")
+    .style("text-anchor", "end")
+    .text("Temperature (°C)");
+
+  svg.append("g")
+    .attr("class", "y-axis pressure-axis")
+    .attr("transform", "translate(" + width + ",0)")
+    .call(yAxis2)
+    .append("text")
+    .attr("fill", "#ffffff")
+    .attr("transform", "rotate(-90)")
+    .attr("y", -12)
+    .attr("dy", "0.71em")
+    .style("text-anchor", "end")
+    .text("Pressure (bar)");
+
+  var temperaturePath = svg.append("path")
+    .datum(data)
+    .attr("class", "temperature-line")
+    .attr("fill", "none")
+    .attr("stroke", "#ff5722")
+    .attr("stroke-width", 2)
+    .attr("d", temperatureLine);
+
+  var pressurePath = svg.append("path")
+    .datum(data)
+    .attr("class", "pressure-line")
+    .attr("fill", "none")
+    .attr("stroke", "#03a9f4")
+    .attr("stroke-width", 2)
+    .attr("d", pressureLine);
+
 const currentTempEl = document.getElementById('temperature');
 const targetTempEl = document.getElementById('targetTemperature');
 const currentPresEl = document.getElementById('pressure');
 const boilerStatusEl = document.getElementById('boilerStatus');
 
 const updateStatus = () => {
+  time = new Date();
   fetch('/status')
   .then(res => res.json())
   .then(val => {
-    tempLine.append(new Date().getTime(), val.temperature);
-    presLine.append(new Date().getTime(), val.pressure);
+    data.push({ time: time, temperature: val.temperature, pressure: val.pressure });
     currentTempEl.innerHTML = val.temperature;
     targetTempEl.innerHTML = val.targetTemperature;
     currentPresEl.innerHTML = val.pressure;
@@ -117,6 +166,31 @@ const updateStatus = () => {
     console.error('Error getting status', err);
     setTimeout(updateStatus, 500);
   });
+
+  // data.push({ time: time, temperature: val.temperature, pressure: val.pressure });
+  if (data.length > width) {
+        data.shift();
+      }
+
+      x.range([0, width]);
+      y1.range([height, 0]);
+      y2.range([height, 0]);
+
+      x.domain(d3.extent(data, function (d) { return d.time; }));
+      y1.domain([0, d3.max(data, function (d) { return d.temperature; })]);
+      y2.domain([0, d3.max(data, function (d) { return d.pressure; })]);
+
+      svg.select(".x-axis")
+        .call(xAxis);
+
+      svg.select(".y-axis.temperature-axis")
+        .call(yAxis1);
+
+      svg.select(".y-axis.pressure-axis")
+        .call(yAxis2);
+
+      temperaturePath.attr("d", temperatureLine);
+      pressurePath.attr("d", pressureLine);  
 };
 
 const configFields = [];
@@ -167,10 +241,38 @@ const jsLcFirst = (string) => {
     return string.charAt(0).toLowerCase() + string.slice(1);
 }
 
+window.addEventListener('resize', function () {
+      width = window.innerWidth - margin.left - margin.right;
+      height = Math.floor((window.innerHeight - 100) / 2) - margin.top - margin.bottom;
+
+      d3.select(".chart-container")
+        .style("height", "calc(50vh - 50px)");
+
+      svg.attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom);
+
+      x.range([0, width]);
+      y1.range([height, 0]);
+      y2.range([height, 0]);
+
+      x.domain(d3.extent(data, function (d) { return d.time; }));
+      y1.domain([0, d3.max(data, function (d) { return d.temperature; })]);
+      y2.domain([0, d3.max(data, function (d) { return d.pressure; })]);
+
+      svg.select(".x-axis")
+        .call(xAxis);
+
+      svg.select(".y-axis.temperature-axis")
+        .call(yAxis1);
+
+      svg.select(".y-axis.pressure-axis")
+        .call(yAxis2);
+
+      temperaturePath.attr("d", temperatureLine);
+      pressurePath.attr("d", pressureLine);
+    });
+
 getConfig();
 updateStatus();
-// Add to SmoothieChart
-smoothie.addTimeSeries(tempLine, {lineWidth:2,strokeStyle:'#00ff00'});
-smoothiePres.addTimeSeries(presLine, {lineWidth:2,strokeStyle:'#00ff00'});
 </script>
 </html>

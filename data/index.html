@@ -9,16 +9,17 @@
   <link rel="stylesheet" href="prophet.min.css" media="all">
 </head>
 <body>
-  <div class="header">
-    <h1>Silvia</h1>
-    <div class="theme-switcher">
-        <label id="theme-switcher-label" for="theme-switcher-checkbox">
-            <input type="checkbox" id="theme-switcher-checkbox">
-            <div class="slider round"></div>
-        </label>
+  <div class="main-container">
+    <div class="header">
+        <h1>Silvia</h1>
+        <div class="theme-switcher">
+            <label id="theme-switcher-label" for="theme-switcher-checkbox">
+                <input type="checkbox" id="theme-switcher-checkbox">
+                <div class="slider round"></div>
+            </label>
+        </div>
     </div>
-  </div>
-  <div class="metrics">
+    <div class="metrics">
     <p>
       <span class="sensor-labels">Boiler Status:</span>
       <span id="boilerStatus">N/A</span>
@@ -80,6 +81,7 @@
       </div>
     </div>
     <button id="save" type="button" onclick="updateConfig();">Save</button>
+  </div>
   </div>
   <ul class="prophet"></ul>
 </body>

@@ -5,10 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="style.css" media="all">
+  <link rel="stylesheet" href="dark.css" media="all">
   <link rel="stylesheet" href="prophet.min.css" media="all">
 </head>
 <body>
-  <h1>Silvia</h1>
+  <div class="header">
+    <h1>Silvia</h1>
+    <div class="theme-switcher">
+        <label id="theme-switcher-label" for="theme-switcher-checkbox">
+            <input type="checkbox" id="theme-switcher-checkbox">
+            <div class="slider round"></div>
+        </label>
+    </div>
+  </div>
   <div class="metrics">
     <p>
       <span class="sensor-labels">Boiler Status:</span>
@@ -78,6 +87,13 @@
 <script type="text/javascript" src="prophet.min.js"></script>
 <script>
 var smoothie = new SmoothieChart({
+  grid: {
+    strokeStyle:'rgba(119,119,119,0.45)',
+    fillStyle:'transparent',
+    lineWidth: 1,
+    millisPerLine: 5000,
+    verticalSections: 5,
+  },
   labels: {
     precision:2
   },
@@ -170,7 +186,33 @@ const jsLcFirst = (string) => {
 getConfig();
 updateStatus();
 // Add to SmoothieChart
-smoothie.addTimeSeries(tempLine, {lineWidth:2,strokeStyle:'#00ff00'});
-smoothiePres.addTimeSeries(presLine, {lineWidth:2,strokeStyle:'#00ff00'});
+smoothie.addTimeSeries(tempLine, {lineWidth:2,strokeStyle:'#2196F3'});
+smoothiePres.addTimeSeries(presLine, {lineWidth:2,strokeStyle:'#2196F3'});
+
+const themeSwitcher = document.getElementById('theme-switcher-checkbox');
+
+const setTheme = (isDark) => {
+    if (isDark) {
+        document.body.classList.add('dark-mode');
+        themeSwitcher.checked = true;
+    } else {
+        document.body.classList.remove('dark-mode');
+        themeSwitcher.checked = false;
+    }
+}
+
+themeSwitcher.addEventListener('change', (event) => {
+    setTheme(event.target.checked);
+    localStorage.setItem('theme', event.target.checked ? 'dark' : 'light');
+});
+
+// check for saved theme preference
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme) {
+    setTheme(savedTheme === 'dark');
+} else {
+    // default to light theme
+    setTheme(false);
+}
 </script>
 </html>

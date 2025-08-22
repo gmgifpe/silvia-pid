@@ -1,0 +1,49 @@
+body.dark-mode {
+    background-color: #121212;
+    color: #ffffff;
+}
+
+.dark-mode h1 {
+    color: #ffffff;
+}
+
+.dark-mode .metrics {
+    color: #ffffff;
+}
+
+.dark-mode .sensor-labels {
+    color: #ffffff;
+}
+
+.dark-mode .units {
+    color: #ffffff;
+}
+
+.dark-mode .graph-wrapper {
+    background-color: #121212;
+}
+
+.dark-mode .config-wrapper {
+    background-color: #121212;
+}
+
+.dark-mode label {
+    color: #ffffff;
+}
+
+.dark-mode input {
+    background-color: #333333;
+    color: #ffffff;
+    border: 1px solid #555555;
+}
+
+.dark-mode button {
+    background-color: #333333;
+    color: #ffffff;
+    border: 1px solid #555555;
+}
+
+.dark-mode .smoothie-chart-tooltip {
+    background: #333333;
+    color: #ffffff;
+}
